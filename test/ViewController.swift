@@ -8,44 +8,60 @@
 
 import UIKit
 
-class ViewController: UITableViewController {
+class ViewController: UIViewController {
 
-    var pictures = [String]()
+    @IBOutlet var button1: UIButton!
+    @IBOutlet var button2: UIButton!
+    @IBOutlet var button3: UIButton!
+    var countries = [String]()
+    var score = 0
+    var correctAnswer = 0
+    var numOfQuestion = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        title = "Storm Viewer"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        let fm = FileManager.default
-        let path = Bundle.main.resourcePath!
-        let items = try! fm.contentsOfDirectory(atPath: path)
-        for item in items {
-            if item.hasPrefix("nssl") {
-                // this is a picture to load!
-                pictures.append(item)
-            }
-        }
-        
-    }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return pictures.count }
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "Picture", for: indexPath)
-        cell.textLabel?.text = pictures[indexPath.row]
-        return cell
+       countries += ["estonia", "france", "germany", "ireland"]
+       button1.layer.borderWidth = 1
+       button2.layer.borderWidth = 1
+       button3.layer.borderWidth = 1
+       button1.layer.borderColor = UIColor.gray.cgColor
+       button2.layer.borderColor = UIColor.gray.cgColor
+       button3.layer.borderColor = UIColor.gray.cgColor
+       askQuestion(action: nil)
     }
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    // 1: try loading the "Detail" view controller and typecasting it to be DetailViewController
-    if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
-    // 2: success! Set its selectedImage property
-        vc.selectedImage = pictures[indexPath.row]
-    // 3: now push it onto the navigation controller
-    navigationController?.pushViewController(vc, animated: true) }
+    func askQuestion(action: UIAlertAction!) {
+    countries.shuffle()
+    correctAnswer = Int.random(in: 0...2)
+    button1.setImage(UIImage(named: countries[0]), for: .normal)
+    button2.setImage(UIImage(named: countries[1]), for: .normal)
+    button3.setImage(UIImage(named: countries[2]), for: .normal)
+    title = countries[correctAnswer].uppercased()
     }
-
-
+    
+    @IBAction func buttonTapped(_ sender: UIButton) {
+        var title: String
+        numOfQuestion += 1
+        if sender.tag == correctAnswer { title = "Correct"
+        score += 1
+        } else {
+        title = "Wrong, that's the flag of \(countries[sender.tag])"
+        score -= 1
+        }
+        if numOfQuestion<5 {
+        let ac = UIAlertController(title: title, message: "Your score is \(score).", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Continue", style: .default, handler: askQuestion))
+        present(ac, animated: true) }
+        else
+        {
+        let ac = UIAlertController(title: title, message: "You finished 5 questions, your final score is \(score).", preferredStyle: .alert)
+        
+        ac.addAction(UIAlertAction(title: "Start new round", style: .default, handler: askQuestion))
+        numOfQuestion = 0
+        score = 0
+        present(ac, animated: true)
+        }
+    }
 }
 
